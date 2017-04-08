@@ -1,23 +1,21 @@
 package ru.supervital.test.itsc;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-
-import java.util.Timer;
-import java.util.TimerTask;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import ru.supervital.test.itsc.data.*;
 import itsc.test.supervital.ru.R;
+import ru.supervital.test.itsc.data.StepsDbHelper;
+import ru.supervital.test.itsc.service.StepsService;
 
 /**
  * Created by Vitaly Oantsa on 07.04.2017.
@@ -26,11 +24,18 @@ import itsc.test.supervital.ru.R;
 public class MainActivity extends AppCompatActivity {
     final String TAG = MainActivity.class.getSimpleName();
 
+    public final static String BROADCAST_ACTION = "ru.supervital.test.itsc.service.pedometr";
+
     final String COUNT_STEPS = "COUNT_STEPS";
 
-    Integer mCountSteps = 0;
+    public final static String PARAM_STATUS = "status";
+    public final static String PARAM_VALUE = "param_value";
+    public final static int STATUS_START = 100;
+    public final static int STATUS_WORK = 200;
+    public final static int STATUS_FINISH = 300;
 
-    private StepsDbHelper mDbHelper = new StepsDbHelper(this);
+    BroadcastReceiver br;
+    Integer mCountSteps = 0;
 
     @BindView(R.id.lblPpd)
     TextView lblPpd;
@@ -42,31 +47,40 @@ public class MainActivity extends AppCompatActivity {
     SensorManager mSensorManager;
     Sensor mSensorAccel;
 
-    private float   mLimit = 15.0f;
-    private float   mLastValues[] = new float[3*2];
-    private float   mLastDirections[] = new float[3*2];
-    private float   mLastExtremes[][] = { new float[3*2], new float[3*2] };
-    private float   mLastDiff[] = new float[3*2];
-    private int     mLastMatch = -1;
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-
-        mCountSteps = (savedInstanceState != null)?
-                            savedInstanceState.getInt(COUNT_STEPS) :
-                                mDbHelper.getCountStepsInDay(null);
-        lblCount.setText(mCountSteps.toString());
+        lblCount.setText("");
+        restoreInstace(savedInstanceState);
         initPedometer();
     }
 
     void initPedometer(){
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mSensorAccel = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        setSensorAccelSupport(getSensorAccelSupport());
+        boolean bSupporSens = getSensorAccelSupport();
+        setSensorAccelSupport(bSupporSens);
+        if (bSupporSens) {
+            startService(new Intent(this, StepsService.class));
+            InitBroadCast();
+        }
+    }
+
+    void restoreInstace(Bundle savedInstanceState){
+        if (savedInstanceState != null) {
+            mCountSteps = savedInstanceState.getInt(COUNT_STEPS);
+        } else {
+            StepsDbHelper mDbHelper = new StepsDbHelper(this);
+            mCountSteps = mDbHelper.getCountStepsInDay(null);
+            mDbHelper.close();
+        }
+        lblCount.setText(mCountSteps.toString());
+    }
+
+    public Boolean getSensorAccelSupport() {
+        return mSensorAccel != null;
     }
 
     public void setSensorAccelSupport(Boolean aValue) {
@@ -76,86 +90,29 @@ public class MainActivity extends AppCompatActivity {
         lblSteps.setText(supS);
     }
 
-    public Boolean getSensorAccelSupport() {
-        return mSensorAccel != null;
-    }
+    private void InitBroadCast(){
+        br = new BroadcastReceiver() {
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (!getSensorAccelSupport())
-                return;
-        mSensorManager.registerListener(listener, mSensorAccel, SensorManager.SENSOR_DELAY_FASTEST);
-    }
-
-    void incSteps(){
-        mCountSteps++;
-        setCountedSteps(mCountSteps);
-    }
-
-    SensorEventListener listener = new SensorEventListener() {
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        }
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER)
-                        return;
-            if (event.values[0]<=3 && event.values[1]<=3 && event.values[2]<=3)
-                        return;
-            //Log.d(TAG, "new accelerometer value! " + sensor.getType());
-            //Log.d(TAG, "accuracy: " + event.accuracy);
-            //Log.d(TAG, "values: " + String.valueOf(event.values[0]) + " " + String.valueOf(event.values[1]) + " "+ String.valueOf(event.values[2]));
-
-            synchronized (this) {
-                float vSum = 0;
-                int h = 480;
-                float mYOffset = h * 0.5f;
-//                final float fConst = - (h * 0.5f * (1.0f / (SensorManager.STANDARD_GRAVITY * 2)));
-                final float fConst  = - (h * 0.5f * (1.0f / (SensorManager.MAGNETIC_FIELD_EARTH_MAX)));
-
-                for (int i=0 ; i<3 ; i++) {
-                    final float v = mYOffset + event.values[i] * fConst;
-
-                    vSum += v;
+            public void onReceive(Context context, Intent intent) {
+                int status = intent.getIntExtra(PARAM_STATUS, 0);
+                switch (status){
+                    case STATUS_START:
+                        Log.d(TAG, "STATUS_START");
+                        break;
+                    case STATUS_FINISH:
+                        Log.d(TAG, "STATUS_FINISH");
+                        break;
+                    case STATUS_WORK:
+                        mCountSteps = intent.getIntExtra(PARAM_VALUE, 0);
+                        Log.d(TAG, "STATUS_WORK: " + mCountSteps);
+                        setCountedSteps(mCountSteps);
+                        break;
                 }
-                int k = 0;
-                float v = vSum / 3;
-
-                float direction = (v > mLastValues[k] ? 1 : (v < mLastValues[k] ? -1 : 0));
-                if (direction == - mLastDirections[k]) {
-                    // Direction changed
-                    int extType = (direction > 0 ? 0 : 1); // minumum or maximum?
-                    mLastExtremes[extType][k] = mLastValues[k];
-                    float diff = Math.abs(mLastExtremes[extType][k] - mLastExtremes[1 - extType][k]);
-
-                    if (diff > mLimit) {
-
-                        boolean isAlmostAsLargeAsPrevious = diff > (mLastDiff[k]*2/3);
-                        boolean isPreviousLargeEnough = mLastDiff[k] > (diff/3);
-                        boolean isNotContra = (mLastMatch != 1 - extType);
-
-                        if (isAlmostAsLargeAsPrevious && isPreviousLargeEnough && isNotContra) {
-                            Log.i(TAG, "step");
-                            incSteps();
-                            mLastMatch = extType;
-                        }
-                        else {
-                            mLastMatch = -1;
-                        }
-                    }
-                    mLastDiff[k] = diff;
-                }
-                mLastDirections[k] = direction;
-                mLastValues[k] = v;
             }
-        }
-    };
-
-    public void setCountedSteps(Integer iCountSteps) {
-        this.mCountSteps = iCountSteps;
-        mDbHelper.setCountStepsInDay(null, iCountSteps);
-        lblCount.setText(iCountSteps.toString());
+        };
+        // создаем фильтр для BroadcastReceiver
+        // регистрируем (включаем) BroadcastReceiver
+        registerReceiver(br, new IntentFilter(BROADCAST_ACTION));
     }
 
     @Override
@@ -164,16 +121,14 @@ public class MainActivity extends AppCompatActivity {
         outState.putInt(COUNT_STEPS, mCountSteps);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (getSensorAccelSupport())
-            mSensorManager.unregisterListener(listener);
+    public void setCountedSteps(Integer iCountSteps) {
+        lblCount.setText(iCountSteps.toString());
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mDbHelper.close();
+        unregisterReceiver(br);
     }
+
 }

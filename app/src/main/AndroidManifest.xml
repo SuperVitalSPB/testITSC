@@ -9,6 +9,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <service android:name="ru.supervital.test.itsc.service.StepsService"
+            android:icon="@mipmap/ic_launcher_round"
+            android:description="@string/service_description"/>
+
         <activity android:name="ru.supervital.test.itsc.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

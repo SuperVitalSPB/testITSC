@@ -3,4 +3,5 @@
     <string name="clNotAvailable">Не доступно</string>
     <string name="clSteps">Шаги</string>
     <string name="clPpd">Пройдено за день:</string>
+    <string name="service_description">сервис для считывания ускорения с аксселерометра и на основе этого считать шаги</string>
 </resources>
