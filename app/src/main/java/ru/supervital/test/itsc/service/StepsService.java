@@ -1,14 +1,17 @@
 package ru.supervital.test.itsc.service;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
+import itsc.test.supervital.ru.R;
 import ru.supervital.test.itsc.MainActivity;
 import ru.supervital.test.itsc.data.StepsDbHelper;
 
@@ -34,8 +37,8 @@ public class StepsService extends Service {
 
     @Override
     public void onCreate() {
-        super.onCreate();
         Log.d(TAG, "Service onCreate");
+        super.onCreate();
         mCountSteps = mDbHelper.getCountStepsInDay(null);
         initPedometer();
     }
@@ -117,7 +120,8 @@ public class StepsService extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Service onStartCommand");
-        return super.onStartCommand(intent, flags, startId);
+        //super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
     public IBinder onBind(Intent arg0) {
@@ -130,5 +134,4 @@ public class StepsService extends Service {
         super.onDestroy();
         mDbHelper.close();
     }
-
 }
