@@ -18,14 +18,14 @@
             android:description="@string/service_description"
             android:icon="@mipmap/ic_launcher_round" />
 
-        <activity android:name="ru.supervital.test.itsc.Activity.MainActivity">
+        <activity android:name="ru.supervital.test.itsc.activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="ru.supervital.test.itsc.Activity.HistoryActivity"></activity>
+        <activity android:name="ru.supervital.test.itsc.activity.HistoryActivity"></activity>
     </application>
 
 </manifest>

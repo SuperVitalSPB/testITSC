@@ -12,7 +12,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import itsc.test.supervital.ru.R;
-import ru.supervital.test.itsc.Activity.MainActivity;
+import ru.supervital.test.itsc.activity.MainActivity;
 import ru.supervital.test.itsc.data.StepsDbHelper;
 
 /**

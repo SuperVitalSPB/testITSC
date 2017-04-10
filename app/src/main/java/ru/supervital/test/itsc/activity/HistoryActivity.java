@@ -1,4 +1,4 @@
-package ru.supervital.test.itsc.Activity;
+package ru.supervital.test.itsc.activity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
