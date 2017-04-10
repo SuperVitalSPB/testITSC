@@ -5,4 +5,6 @@
     <string name="clSteps">Steps</string>
     <string name="clPpd">Passed per day:</string>
     <string name="service_description">Service for reading acceleration from the accelerometer and based on this, count the steps</string>
+    <string name="cbHistory">History</string>
+    <string name="clHistActivity">Step Counting History:</string>
 </resources>

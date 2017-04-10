@@ -1,4 +1,4 @@
-package ru.supervital.test.itsc;
+package ru.supervital.test.itsc.Activity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,9 +13,12 @@ import android.view.View;
 import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import itsc.test.supervital.ru.R;
 import ru.supervital.test.itsc.data.StepsDbHelper;
 import ru.supervital.test.itsc.service.StepsService;
+
+import static itsc.test.supervital.ru.R.id.btnHistory;
 
 /**
  * Created by Vitaly Oantsa on 07.04.2017.
@@ -130,6 +133,11 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         if (br!= null)
             unregisterReceiver(br);
+    }
+
+    @OnClick(btnHistory)
+    public void btnHistory_onClick(View view) {
+        startActivity(new Intent(this, HistoryActivity.class));
     }
 
 }

@@ -5,11 +5,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.icu.text.SimpleDateFormat;
-import android.util.Log;
 
-import java.util.Calendar;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+
+import ru.supervital.test.itsc.adapter.Steps;
 
 import static ru.supervital.test.itsc.data.StepsHistoryContract.StepsEntry.TABLE_NAME;
 
@@ -20,7 +22,7 @@ import static ru.supervital.test.itsc.data.StepsHistoryContract.StepsEntry.TABLE
 public class StepsDbHelper extends SQLiteOpenHelper {
     public static final String TAG = StepsDbHelper.class.getSimpleName();
 
-    private static final String DATABASE_NAME = "steps.db";
+    private static final String DATABASE_NAME = "stepsHistotry.db";
     private static final int DATABASE_VERSION = 1;
 
     /**
@@ -104,5 +106,36 @@ public class StepsDbHelper extends SQLiteOpenHelper {
                     new String[] {getTrustDate(aDate)});
         }
     };
+
+    public ArrayList<Steps> getStepsPerDay(){
+        ArrayList<Steps> res = new ArrayList<>();
+
+        SQLiteDatabase db = getReadableDatabase();
+        String[] projection = {
+                StepsHistoryContract.StepsEntry.COLUMN_DATE_STEP,
+                StepsHistoryContract.StepsEntry.COLUMN_COUNT};
+        Cursor cursor = db.query(
+                StepsHistoryContract.StepsEntry.TABLE_NAME,
+                projection,            // столбцы
+                null,                  // столбцы для условия WHERE
+                null,                  // значения для условия WHERE
+                null,                  // Don't group the rows
+                null,                  // Don't filter by row groups
+                StepsHistoryContract.StepsEntry.COLUMN_DATE_STEP);                 // порядок сортировки
+        try {
+            int dateColumnIndex = cursor.getColumnIndex(StepsHistoryContract.StepsEntry.COLUMN_DATE_STEP);
+            int countColumnIndex = cursor.getColumnIndex(StepsHistoryContract.StepsEntry.COLUMN_COUNT);
+
+            while (cursor.moveToNext()) {
+                String date = cursor.getString(dateColumnIndex);
+                Integer count = cursor.getInt(countColumnIndex);
+                res.add(new Steps(date, count));
+            }
+        } finally {
+            cursor.close();
+        }
+        return res;
+    }
+
 
 }

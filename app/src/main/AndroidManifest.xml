@@ -9,17 +9,23 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <service android:name="ru.supervital.test.itsc.service.StepsService"
-            android:icon="@mipmap/ic_launcher_round"
-            android:description="@string/service_description"/>
+        <service
+            android:name="ru.supervital.test.itsc.service.StepsService"
+            android:description="@string/service_description"
+            android:icon="@mipmap/ic_launcher_round" />
+        <service
+            android:name="ru.supervital.test.itsc.service.HideNotificationService"
+            android:description="@string/service_description"
+            android:icon="@mipmap/ic_launcher_round" />
 
-        <activity android:name="ru.supervital.test.itsc.MainActivity">
+        <activity android:name="ru.supervital.test.itsc.Activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="ru.supervital.test.itsc.Activity.HistoryActivity"></activity>
     </application>
 
 </manifest>

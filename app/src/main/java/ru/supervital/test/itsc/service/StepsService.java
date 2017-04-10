@@ -12,7 +12,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import itsc.test.supervital.ru.R;
-import ru.supervital.test.itsc.MainActivity;
+import ru.supervital.test.itsc.Activity.MainActivity;
 import ru.supervital.test.itsc.data.StepsDbHelper;
 
 /**
@@ -38,9 +38,21 @@ public class StepsService extends Service {
     @Override
     public void onCreate() {
         Log.d(TAG, "Service onCreate");
+        Notification.Builder builder = new Notification.Builder(this)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentText(getString(R.string.service_description));
+        Notification notification;
+        if (Build.VERSION.SDK_INT < 16)
+            notification = builder.getNotification();
+        else
+            notification = builder.build();
+        startForeground(777, notification);
+        Intent hideIntent = new Intent(this, HideNotificationService.class);
+        startService(hideIntent);
+
+
         super.onCreate();
         mCountSteps = mDbHelper.getCountStepsInDay(null);
-        initPedometer();
     }
 
     void initPedometer(){
@@ -121,6 +133,7 @@ public class StepsService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Service onStartCommand");
         //super.onStartCommand(intent, flags, startId);
+        initPedometer();
         return START_STICKY;
     }
 
