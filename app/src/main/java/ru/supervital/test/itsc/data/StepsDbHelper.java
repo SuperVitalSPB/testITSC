@@ -47,7 +47,7 @@ public class StepsDbHelper extends SQLiteOpenHelper {
 
     }
 
-    public String getTrustDate(Date aDate){
+    public static String getTrustDate(Date aDate){
         Date wDate = (aDate==null? new Date() : aDate);
         String res = android.text.format.DateFormat.format(
                                  "yyyy-MM-dd", wDate).toString();

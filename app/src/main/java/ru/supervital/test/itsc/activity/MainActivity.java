@@ -11,10 +11,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import itsc.test.supervital.ru.R;
+import ru.supervital.test.itsc.adapter.Steps;
 import ru.supervital.test.itsc.data.StepsDbHelper;
 import ru.supervital.test.itsc.service.StepsService;
 
@@ -38,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
     public final static int STATUS_FINISH = 300;
 
     BroadcastReceiver br;
-    Integer mCountSteps = 0;
+
+    Map mCountSteps = new HashMap<String, Integer>();
 
     @BindView(R.id.lblPpd)
     TextView lblPpd;
@@ -73,13 +79,13 @@ public class MainActivity extends AppCompatActivity {
 
     void restoreInstace(Bundle savedInstanceState){
         if (savedInstanceState != null) {
-            mCountSteps = savedInstanceState.getInt(COUNT_STEPS);
+            mCountSteps.put(StepsDbHelper.getTrustDate(null), savedInstanceState.getInt(COUNT_STEPS));
         } else {
             StepsDbHelper mDbHelper = new StepsDbHelper(this);
-            mCountSteps = mDbHelper.getCountStepsInDay(null);
+            mCountSteps.put(StepsDbHelper.getTrustDate(null), mDbHelper.getCountStepsInDay(null));
             mDbHelper.close();
         }
-        lblCount.setText(mCountSteps.toString());
+        lblCount.setText(mCountSteps.get(StepsDbHelper.getTrustDate(null)).toString());
     }
 
     public Boolean getSensorAccelSupport() {
@@ -106,9 +112,9 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "STATUS_FINISH");
                         break;
                     case STATUS_WORK:
-                        mCountSteps = intent.getIntExtra(PARAM_VALUE, 0);
-                        Log.d(TAG, "STATUS_WORK: " + mCountSteps);
-                        setCountedSteps(mCountSteps);
+                        int iCountSteps = intent.getIntExtra(PARAM_VALUE, 0);
+                        Log.d(TAG, "STATUS_WORK: " + iCountSteps);
+                        setCountedSteps(iCountSteps);
                         break;
                 }
             }
@@ -121,10 +127,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(COUNT_STEPS, mCountSteps);
+        outState.putInt(COUNT_STEPS, Integer.valueOf(mCountSteps.get(StepsDbHelper.getTrustDate(null)).toString()));
     }
 
     public void setCountedSteps(Integer iCountSteps) {
+        mCountSteps.put(StepsDbHelper.getTrustDate(null), iCountSteps);
         lblCount.setText(iCountSteps.toString());
     }
 

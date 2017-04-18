@@ -11,6 +11,9 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import itsc.test.supervital.ru.R;
 import ru.supervital.test.itsc.activity.MainActivity;
 import ru.supervital.test.itsc.data.StepsDbHelper;
@@ -22,7 +25,7 @@ import ru.supervital.test.itsc.data.StepsDbHelper;
 public class StepsService extends Service {
     private static final String TAG = StepsService.class.getSimpleName();
 
-    Integer mCountSteps = 0;
+    Map mCountSteps = new HashMap<String, Integer>();
     private StepsDbHelper mDbHelper = new StepsDbHelper(this);
 
     SensorManager mSensorManager;
@@ -52,7 +55,7 @@ public class StepsService extends Service {
 
 
         super.onCreate();
-        mCountSteps = mDbHelper.getCountStepsInDay(null);
+        mCountSteps.put(mDbHelper.getTrustDate(null), mDbHelper.getCountStepsInDay(null));
     }
 
     void initPedometer(){
@@ -121,12 +124,13 @@ public class StepsService extends Service {
     };
 
     void incSteps(){
-        mCountSteps++;
-        mDbHelper.setCountStepsInDay(null, mCountSteps);
+        int iCountSteps = (Integer) mCountSteps.get(mDbHelper.getTrustDate(null)) + 1;
+        mCountSteps.put(mDbHelper.getTrustDate(null), iCountSteps);
+        mDbHelper.setCountStepsInDay(null, iCountSteps);
 
         Intent intent = new Intent(MainActivity.BROADCAST_ACTION);
         intent.putExtra(MainActivity.PARAM_STATUS, MainActivity.STATUS_WORK)
-                .putExtra(MainActivity.PARAM_VALUE, mCountSteps);
+                .putExtra(MainActivity.PARAM_VALUE, iCountSteps);
         sendBroadcast(intent);
     }
 
